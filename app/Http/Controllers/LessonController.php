@@ -63,7 +63,14 @@ class LessonController extends Controller
      */
     public function show($id)
     {
-        $lesson = Lesson::findOrFail($id);
+        $lesson = Lesson::find($id);//404
+        if (!$lesson) {
+            return \Response::json([
+                'status' => 'failed',
+                'status_code' => 404,
+                'message' => 'Lesson not found'
+            ]);
+        }
         return \Response::json([
             'status' => 'success',
             'status_code' => 200,//成功返回设置为200
