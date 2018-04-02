@@ -3,29 +3,36 @@
 namespace App\Http\Controllers;
 
 use App\Lesson;
+use App\Transformer\LessonTransformer;
 use Illuminate\Http\Request;
-
-// use App\Http\Request;
+use App\Http\Requests;
 
 class LessonController extends Controller
 {
+    public function __construct(LessonTransformer $lessonTransformer)
+    {
+        $this->lessonTransformer = $lessonTransformer;
+    }
+
+    protected $lessonTransformer;
+
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
     public function index()
-{
-    //Response::json()区代替直接返回的$lessons,并且添加额外信息status，status_code
-    //利用transformCollection()和transform()隐藏数据表的结构
-    $lessons = Lesson::all();//bad
-    return \Response::json([
-        'status' => 'success',
-        'status_code' => 200,//成功返回设置为200
-        // 'data' => $lesson->toArray(),
-        'data' => $this->transformCollection($lessons)//隐藏字段
-    ]);
-}
+    {
+        //Response::json()区代替直接返回的$lessons,并且添加额外信息status，status_code
+        //利用transformCollection()和transform()隐藏数据表的结构
+        $lessons = Lesson::all();//bad
+        return \Response::json([
+            'status' => 'success',
+            'status_code' => 200,//成功返回设置为200
+            // 'data' => $lesson->toArray(),
+            'data' => $this->lessonTransformer->transformCollection($lessons->toArray())//隐藏字段
+        ]);
+    }
 
     /**
      * Show the form for creating a new resource.
@@ -60,7 +67,7 @@ class LessonController extends Controller
         return \Response::json([
             'status' => 'success',
             'status_code' => 200,//成功返回设置为200
-            'data' => $this->transform($lesson)
+            'data' => $this->lessonTransformer->transform($lesson)
             // 'data' => $lesson
         ]);
     }
@@ -97,20 +104,5 @@ class LessonController extends Controller
     public function destroy($id)
     {
         //
-    }
-
-    private function transformCollection($lessons)
-    {
-        return array_map([$this, 'transform'], $lessons->toArray());
-    }
-
-    private function transform($lesson)
-    {
-        return [
-            'title' => $lesson['title'],
-            'content' => $lesson['body'],
-            // 'is_free' => $lesson['free'],
-            'is_free' => (boolean)$lesson['free'],
-        ];
     }
 }
